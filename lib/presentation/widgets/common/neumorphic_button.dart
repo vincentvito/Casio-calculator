@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/enums/button_type.dart';
 import '../../../theme/color_palette.dart';
 import '../../../theme/typography.dart';
 import '../../painters/plastic_highlight_painter.dart';
+import '../../providers/feedback_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Tactile neumorphic button with press animation
@@ -65,7 +65,7 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
     if (!widget.enabled) return;
     setState(() => _isPressed = true);
     _controller.forward();
-    _triggerHaptic();
+    context.read<FeedbackProvider>().onButtonPress(widget.buttonType);
   }
 
   void _handleTapUp(TapUpDetails details) {
@@ -78,21 +78,6 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
   void _handleTapCancel() {
     setState(() => _isPressed = false);
     _controller.reverse();
-  }
-
-  void _triggerHaptic() {
-    switch (widget.buttonType) {
-      case ButtonType.number:
-        HapticFeedback.lightImpact();
-      case ButtonType.operation:
-      case ButtonType.function:
-        HapticFeedback.mediumImpact();
-      case ButtonType.equals:
-        HapticFeedback.heavyImpact();
-      case ButtonType.clear:
-      case ButtonType.memory:
-        HapticFeedback.selectionClick();
-    }
   }
 
   @override

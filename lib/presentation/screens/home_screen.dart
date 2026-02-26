@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../providers/feedback_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/history_provider.dart';
@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            HapticFeedback.lightImpact();
+                            context.read<FeedbackProvider>().lightTap();
                             setState(() => _screenMode = ScreenMode.calculator);
                           },
                           child: Container(
@@ -406,7 +406,7 @@ class _SettingsPanel extends StatelessWidget {
                   if (history.isEmpty) return const SizedBox.shrink();
                   return GestureDetector(
                     onTap: () {
-                      HapticFeedback.lightImpact();
+                      context.read<FeedbackProvider>().lightTap();
                       history.clearHistory();
                     },
                     child: Text(
@@ -491,7 +491,7 @@ class _ToolButton extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        HapticFeedback.lightImpact();
+        context.read<FeedbackProvider>().lightTap();
         onTap();
       },
       child: Container(

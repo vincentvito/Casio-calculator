@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/theme_definitions.dart';
 import '../../theme/theme_palette.dart';
+import '../providers/feedback_provider.dart';
 import '../../theme/typography.dart';
 import '../providers/theme_provider.dart';
 import '../providers/settings_provider.dart';
+import 'color_customizer_screen.dart';
 
 /// Full-screen theme picker with large preview cards.
 class ThemePickerScreen extends StatelessWidget {
@@ -31,7 +32,7 @@ class ThemePickerScreen extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      HapticFeedback.lightImpact();
+                      context.read<FeedbackProvider>().lightTap();
                       Navigator.of(context).pop();
                     },
                     child: Container(
@@ -69,7 +70,7 @@ class ThemePickerScreen extends StatelessWidget {
                     isActive: isActive,
                     isDarkMode: themeProvider.isDarkMode,
                     onTap: () {
-                      HapticFeedback.mediumImpact();
+                      context.read<FeedbackProvider>().mediumTap();
                       settings.updateThemeId(def.id);
                     },
                   );
@@ -164,6 +165,59 @@ class _ThemePreviewCard extends StatelessWidget {
                   definition.description,
                   style: AppTypography.settingsSubtitle(theme.textSecondary),
                 ),
+
+                // Customize Colors button (active theme only)
+                if (isActive) ...[
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () {
+                      context.read<FeedbackProvider>().mediumTap();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ColorCustomizerScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: theme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.palette_outlined,
+                              color: theme.accentColor, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Customize Colors',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: theme.accentColor,
+                            ),
+                          ),
+                          if (context
+                              .watch<SettingsProvider>()
+                              .colorOverrides
+                              .isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: theme.accentColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

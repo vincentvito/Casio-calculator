@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/neumorphic_style.dart';
 import '../../theme/typography.dart';
+import '../providers/feedback_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/common/neumorphic_container.dart';
 import '../widgets/common/neumorphic_button.dart';
@@ -74,7 +74,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       _fromCurrency = _toCurrency;
       _toCurrency = temp;
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _inputDigit(String digit) {
@@ -85,7 +85,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
         _inputValue += digit;
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _inputDecimal() {
@@ -93,7 +93,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       setState(() {
         _inputValue += '.';
       });
-      HapticFeedback.lightImpact();
+      context.read<FeedbackProvider>().lightTap();
     }
   }
 
@@ -101,7 +101,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     setState(() {
       _inputValue = '0';
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _backspace() {
@@ -112,7 +112,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
         _inputValue = '0';
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   @override
@@ -287,7 +287,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                         }
                       });
                       Navigator.pop(context);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   );
                 },

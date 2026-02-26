@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/enums/app_theme_id.dart';
+import '../../data/models/color_overrides.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/color_derivation.dart';
 import '../../theme/neumorphic_theme.dart';
 import '../../theme/theme_definitions.dart';
 import 'settings_provider.dart';
@@ -9,6 +11,7 @@ import 'settings_provider.dart';
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
   AppThemeId _activeThemeId = AppThemeId.classic;
+  ColorOverrides _colorOverrides = const ColorOverrides();
   NeumorphicThemeData _neumorphicTheme = NeumorphicThemeData.light();
   ThemeData _materialTheme = AppTheme.light;
   ThemeDefinition _definition = ThemeRegistry.classic;
@@ -24,10 +27,14 @@ class ThemeProvider extends ChangeNotifier {
   void updateFromSettings(SettingsProvider settings) {
     final newMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
     final newThemeId = settings.themeId;
+    final newOverrides = settings.colorOverrides;
 
-    if (_themeMode != newMode || _activeThemeId != newThemeId) {
+    if (_themeMode != newMode ||
+        _activeThemeId != newThemeId ||
+        _colorOverrides != newOverrides) {
       _themeMode = newMode;
       _activeThemeId = newThemeId;
+      _colorOverrides = newOverrides;
       _rebuildTheme();
       notifyListeners();
     }
@@ -53,7 +60,11 @@ class ThemeProvider extends ChangeNotifier {
   void _rebuildTheme() {
     _definition = ThemeRegistry.getById(_activeThemeId);
     final isDark = _themeMode == ThemeMode.dark;
-    final palette = isDark ? _definition.darkPalette : _definition.lightPalette;
+    var palette = isDark ? _definition.darkPalette : _definition.lightPalette;
+
+    if (_colorOverrides.isNotEmpty) {
+      palette = ColorDerivation.applyAll(palette, _colorOverrides);
+    }
 
     _neumorphicTheme =
         NeumorphicThemeData.fromPalette(palette, isDark: isDark);

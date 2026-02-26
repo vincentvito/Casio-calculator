@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../../core/enums/neumorphic_style.dart';
+import '../providers/feedback_provider.dart';
 import '../../theme/typography.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/common/neumorphic_container.dart';
@@ -83,14 +83,14 @@ class _TVMSolverScreenState extends State<TVMSolverScreen> {
     }
 
     _setValueForVariable(_selectedVariable, newValue);
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _inputDecimal() {
     final current = _getValueForVariable(_selectedVariable);
     if (!current.contains('.')) {
       _setValueForVariable(_selectedVariable, current.isEmpty ? '0.' : '$current.');
-      HapticFeedback.lightImpact();
+      context.read<FeedbackProvider>().lightTap();
     }
   }
 
@@ -103,7 +103,7 @@ class _TVMSolverScreenState extends State<TVMSolverScreen> {
     } else {
       _setValueForVariable(_selectedVariable, '-$current');
     }
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _backspace() {
@@ -111,12 +111,12 @@ class _TVMSolverScreenState extends State<TVMSolverScreen> {
     if (current.isNotEmpty) {
       _setValueForVariable(_selectedVariable, current.substring(0, current.length - 1));
     }
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _clear() {
     _setValueForVariable(_selectedVariable, '');
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _clearAll() {
@@ -129,11 +129,11 @@ class _TVMSolverScreenState extends State<TVMSolverScreen> {
       _solveFor = null;
       _errorMessage = null;
     });
-    HapticFeedback.heavyImpact();
+    context.read<FeedbackProvider>().heavyTap();
   }
 
   void _solve() {
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
 
     // Count how many variables have values
     int filledCount = 0;
@@ -459,7 +459,7 @@ class _TVMRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: GestureDetector(
           onTap: () {
-            HapticFeedback.selectionClick();
+            context.read<FeedbackProvider>().selectionClick();
             onTap();
           },
           child: NeumorphicContainer(

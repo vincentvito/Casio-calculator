@@ -1,5 +1,7 @@
 import 'package:just_audio/just_audio.dart';
 
+import 'sound_generator.dart';
+
 /// Types of sound effects
 enum SoundType {
   clickLight,
@@ -10,46 +12,44 @@ enum SoundType {
   error,
 }
 
-/// Service for managing sound effect playback
+/// Service for managing sound effect playback using synthesized audio
 class AudioService {
   final Map<SoundType, AudioPlayer> _players = {};
   bool _isInitialized = false;
   bool _isEnabled = true;
   double _volume = 0.7;
 
-  /// Asset paths for each sound type
-  static const Map<SoundType, String> _soundAssets = {
-    SoundType.clickLight: 'assets/sounds/click_light.mp3',
-    SoundType.clickMedium: 'assets/sounds/click_medium.mp3',
-    SoundType.clickHeavy: 'assets/sounds/click_heavy.mp3',
-    SoundType.toggle: 'assets/sounds/toggle.mp3',
-    SoundType.dialTick: 'assets/sounds/dial_tick.mp3',
-    SoundType.error: 'assets/sounds/error.mp3',
-  };
-
   bool get isInitialized => _isInitialized;
   bool get isEnabled => _isEnabled;
   double get volume => _volume;
 
-  /// Initialize and preload all sounds
+  /// Initialize and preload all synthesized sounds
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // Create a player for each sound type
-      for (final type in SoundType.values) {
+      final generators = {
+        SoundType.clickLight: SoundGenerator.clickLight(),
+        SoundType.clickMedium: SoundGenerator.clickMedium(),
+        SoundType.clickHeavy: SoundGenerator.clickHeavy(),
+        SoundType.toggle: SoundGenerator.toggle(),
+        SoundType.dialTick: SoundGenerator.dialTick(),
+        SoundType.error: SoundGenerator.error(),
+      };
+
+      for (final entry in generators.entries) {
         final player = AudioPlayer();
         try {
-          await player.setAsset(_soundAssets[type]!);
+          await player.setAudioSource(SynthAudioSource(entry.value));
           await player.setVolume(_volume);
-          _players[type] = player;
+          _players[entry.key] = player;
         } catch (_) {
-          // Asset doesn't exist yet, skip
+          // Skip this sound type if generation fails
         }
       }
       _isInitialized = true;
     } catch (_) {
-      // Audio service initialization failed - sounds will be disabled
+      // Audio service initialization failed — sounds will be disabled
     }
   }
 
@@ -64,11 +64,11 @@ class AudioService {
       await player.seek(Duration.zero);
       await player.play();
     } catch (_) {
-      // Sound playback failed - ignore silently
+      // Sound playback failed — ignore silently
     }
   }
 
-  // Convenience methods for specific sounds
+  // Convenience methods
   Future<void> playClickLight() => playSound(SoundType.clickLight);
   Future<void> playClickMedium() => playSound(SoundType.clickMedium);
   Future<void> playClickHeavy() => playSound(SoundType.clickHeavy);

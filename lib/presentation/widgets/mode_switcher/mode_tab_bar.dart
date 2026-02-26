@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/enums/calculator_mode.dart';
 import '../../../theme/typography.dart';
+import '../../providers/feedback_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Neumorphic tab bar for switching between Calculator, Currency, and Unit modes
@@ -93,7 +93,7 @@ class _ModeTab extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.selectionClick();
+          context.read<FeedbackProvider>().selectionClick();
           onTap();
         },
         child: AnimatedContainer(

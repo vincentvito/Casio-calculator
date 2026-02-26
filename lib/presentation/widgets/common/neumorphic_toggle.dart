@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../theme/color_palette.dart';
+import '../../providers/feedback_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Physical toggle switch with neumorphic styling
@@ -61,7 +61,7 @@ class _NeumorphicToggleState extends State<NeumorphicToggle>
   }
 
   void _handleTap() {
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().selectionClick();
     widget.onChanged?.call(!widget.value);
   }
 

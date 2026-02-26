@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/neumorphic_style.dart';
 import '../../theme/typography.dart';
+import '../providers/feedback_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/common/neumorphic_container.dart';
 import '../widgets/common/neumorphic_button.dart';
@@ -133,7 +133,7 @@ class _PercentageCalculatorScreenState
         }
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _inputDecimal() {
@@ -148,7 +148,7 @@ class _PercentageCalculatorScreenState
         }
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _clearAll() {
@@ -156,7 +156,7 @@ class _PercentageCalculatorScreenState
       _valueX = '0';
       _valueY = '0';
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _backspace() {
@@ -175,7 +175,7 @@ class _PercentageCalculatorScreenState
         }
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _toggleSign() {
@@ -194,7 +194,7 @@ class _PercentageCalculatorScreenState
         }
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   @override
@@ -226,7 +226,7 @@ class _PercentageCalculatorScreenState
                         _valueY = '0';
                         _editingX = true;
                       });
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -285,7 +285,7 @@ class _PercentageCalculatorScreenState
                     isActive: _editingX,
                     onTap: () {
                       setState(() => _editingX = true);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   ),
                 ),
@@ -301,7 +301,7 @@ class _PercentageCalculatorScreenState
                     isActive: !_editingX,
                     onTap: () {
                       setState(() => _editingX = false);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   ),
                 ),

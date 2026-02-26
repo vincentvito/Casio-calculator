@@ -1,15 +1,19 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../../core/enums/enums.dart';
 import '../../data/datasources/local/hive_boxes.dart';
 import '../../data/models/app_settings.dart';
+import '../../data/models/color_overrides.dart';
 
 /// Provider for managing app settings
 class SettingsProvider extends ChangeNotifier {
   AppSettings _settings = AppSettings();
   bool _isLoaded = false;
+  ColorOverrides _colorOverrides = const ColorOverrides();
 
   AppSettings get settings => _settings;
   bool get isLoaded => _isLoaded;
+  ColorOverrides get colorOverrides => _colorOverrides;
 
   // Convenience getters
   bool get soundEnabled => _settings.soundEnabled;
@@ -35,6 +39,7 @@ class SettingsProvider extends ChangeNotifier {
       if (savedSettings != null) {
         _settings = savedSettings;
       }
+      _loadColorOverrides();
       _isLoaded = true;
       notifyListeners();
     } catch (_) {
@@ -116,12 +121,14 @@ class SettingsProvider extends ChangeNotifier {
   void updateIsDarkMode(bool value) {
     _settings = _settings.copyWith(isDarkMode: value);
     _saveSettings();
+    _loadColorOverrides();
     notifyListeners();
   }
 
   void updateThemeId(AppThemeId themeId) {
     _settings = _settings.copyWith(themeIdIndex: themeId.index);
     _saveSettings();
+    _loadColorOverrides();
     notifyListeners();
   }
 
@@ -131,10 +138,54 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Color Overrides ---
+
+  void _loadColorOverrides() {
+    try {
+      final box = HiveBoxes.colorOverridesBox;
+      final key = ColorOverrides.storageKey(themeId, isDarkMode);
+      final raw = box.get(key);
+      if (raw != null) {
+        _colorOverrides = ColorOverrides(Map<String, int>.from(raw));
+      } else {
+        _colorOverrides = const ColorOverrides();
+      }
+    } catch (_) {
+      _colorOverrides = const ColorOverrides();
+    }
+  }
+
+  void updateColorOverride(String colorKey, Color? color) {
+    _colorOverrides = _colorOverrides.copyWithColor(colorKey, color);
+    _saveColorOverrides();
+    notifyListeners();
+  }
+
+  void resetColorOverrides() {
+    _colorOverrides = _colorOverrides.clearAll();
+    _saveColorOverrides();
+    notifyListeners();
+  }
+
+  void _saveColorOverrides() {
+    try {
+      final box = HiveBoxes.colorOverridesBox;
+      final key = ColorOverrides.storageKey(themeId, isDarkMode);
+      if (_colorOverrides.isEmpty) {
+        box.delete(key);
+      } else {
+        box.put(key, _colorOverrides.toMap());
+      }
+    } catch (_) {
+      // Silently fail
+    }
+  }
+
   /// Reset all settings to defaults
   Future<void> resetToDefaults() async {
     _settings = AppSettings();
     await _saveSettings();
+    _colorOverrides = const ColorOverrides();
     notifyListeners();
   }
 }

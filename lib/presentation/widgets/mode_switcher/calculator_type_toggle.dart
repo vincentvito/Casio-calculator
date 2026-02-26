@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../theme/typography.dart';
 import '../../../theme/color_palette.dart';
+import '../../providers/feedback_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Toggle switch for Basic/Scientific calculator modes
@@ -133,7 +133,7 @@ class _CalculatorTypeToggleState extends State<CalculatorTypeToggle>
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        HapticFeedback.selectionClick();
+                        context.read<FeedbackProvider>().selectionClick();
                         widget.onChanged(false);
                       },
                       behavior: HitTestBehavior.opaque,
@@ -163,7 +163,7 @@ class _CalculatorTypeToggleState extends State<CalculatorTypeToggle>
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        HapticFeedback.selectionClick();
+                        context.read<FeedbackProvider>().selectionClick();
                         widget.onChanged(true);
                       },
                       behavior: HitTestBehavior.opaque,

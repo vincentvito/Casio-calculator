@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/neumorphic_style.dart';
 import '../../core/enums/unit_type.dart';
+import '../providers/feedback_provider.dart';
 import '../../theme/typography.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/common/neumorphic_container.dart';
@@ -124,7 +124,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
       _fromUnitIndex = _toUnitIndex;
       _toUnitIndex = temp;
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _inputDigit(String digit) {
@@ -135,7 +135,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
         _inputValue += digit;
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _inputDecimal() {
@@ -143,7 +143,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
       setState(() {
         _inputValue += '.';
       });
-      HapticFeedback.lightImpact();
+      context.read<FeedbackProvider>().lightTap();
     }
   }
 
@@ -151,7 +151,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
     setState(() {
       _inputValue = '0';
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _backspace() {
@@ -162,7 +162,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
         _inputValue = '0';
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   @override
@@ -194,7 +194,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
                         _toUnitIndex = 1;
                         _inputValue = '0';
                       });
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -392,7 +392,7 @@ class _UnitConverterScreenState extends State<UnitConverterScreen> {
                         }
                       });
                       Navigator.pop(context);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   );
                 },

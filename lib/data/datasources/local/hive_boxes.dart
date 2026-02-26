@@ -11,11 +11,13 @@ class HiveBoxes {
   static const String settings = 'settings';
   static const String currencyRates = 'currency_rates';
   static const String history = 'calculation_history';
+  static const String colorOverrides = 'color_overrides';
 
   // Box instances (lazy initialized)
   static Box<AppSettings>? _settingsBox;
   static Box<CachedRates>? _currencyRatesBox;
   static Box<CalculationHistory>? _historyBox;
+  static Box? _colorOverridesBox;
 
   /// Initialize Hive and open all boxes
   static Future<void> initialize() async {
@@ -40,6 +42,7 @@ class HiveBoxes {
       _openSettingsBox(),
       _openCurrencyRatesBox(),
       _openHistoryBox(),
+      _openColorOverridesBox(),
     ]);
   }
 
@@ -53,6 +56,10 @@ class HiveBoxes {
 
   static Future<void> _openHistoryBox() async {
     _historyBox = await Hive.openBox<CalculationHistory>(history);
+  }
+
+  static Future<void> _openColorOverridesBox() async {
+    _colorOverridesBox = await Hive.openBox(colorOverrides);
   }
 
   /// Get settings box
@@ -80,12 +87,22 @@ class HiveBoxes {
     return _historyBox!;
   }
 
+  /// Get color overrides box
+  static Box get colorOverridesBox {
+    if (_colorOverridesBox == null || !_colorOverridesBox!.isOpen) {
+      throw StateError(
+          'Color overrides box not initialized. Call initialize() first.');
+    }
+    return _colorOverridesBox!;
+  }
+
   /// Close all boxes
   static Future<void> close() async {
     await Future.wait([
       if (_settingsBox?.isOpen ?? false) _settingsBox!.close(),
       if (_currencyRatesBox?.isOpen ?? false) _currencyRatesBox!.close(),
       if (_historyBox?.isOpen ?? false) _historyBox!.close(),
+      if (_colorOverridesBox?.isOpen ?? false) _colorOverridesBox!.close(),
     ]);
   }
 
@@ -95,6 +112,7 @@ class HiveBoxes {
       if (_settingsBox?.isOpen ?? false) _settingsBox!.clear(),
       if (_currencyRatesBox?.isOpen ?? false) _currencyRatesBox!.clear(),
       if (_historyBox?.isOpen ?? false) _historyBox!.clear(),
+      if (_colorOverridesBox?.isOpen ?? false) _colorOverridesBox!.clear(),
     ]);
   }
 }

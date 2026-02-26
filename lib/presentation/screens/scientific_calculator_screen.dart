@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/enums.dart';
+import '../providers/feedback_provider.dart';
 import '../providers/scientific_calculator_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/history_provider.dart';
@@ -52,7 +52,7 @@ class _ScientificCalculatorScreenState
                         label: calc.isRadianMode ? 'RAD' : 'DEG',
                         isActive: calc.isRadianMode,
                         onTap: () {
-                          HapticFeedback.selectionClick();
+                          context.read<FeedbackProvider>().selectionClick();
                           calc.toggleAngleMode();
                         },
                       ),
@@ -61,7 +61,7 @@ class _ScientificCalculatorScreenState
                         label: '2nd',
                         isActive: _isInverseMode,
                         onTap: () {
-                          HapticFeedback.selectionClick();
+                          context.read<FeedbackProvider>().selectionClick();
                           setState(() => _isInverseMode = !_isInverseMode);
                         },
                       ),

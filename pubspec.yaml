@@ -52,6 +52,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
+  # Color picker with HSV wheel
+  flex_color_picker: ^3.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,7 +84,6 @@ flutter:
   # Assets
   assets:
     - assets/textures/
-  #   - assets/sounds/
 
   # Custom fonts - uncomment when font files are added
   # fonts:

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/neumorphic_style.dart';
 import '../../theme/typography.dart';
+import '../providers/feedback_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/common/neumorphic_container.dart';
 import '../widgets/common/neumorphic_button.dart';
@@ -148,7 +148,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
         _setCurrentFieldValue(currentValue);
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _setCurrentFieldValue(String value) {
@@ -170,7 +170,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
         _setCurrentFieldValue(currentValue);
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _clearAll() {
@@ -180,14 +180,14 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
       _year = '';
       _activeField = 0;
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _nextField() {
     setState(() {
       _activeField = (_activeField + 1) % 3;
     });
-    HapticFeedback.selectionClick();
+    context.read<FeedbackProvider>().selectionClick();
   }
 
   void _setToday() {
@@ -197,7 +197,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
       _month = now.month.toString().padLeft(2, '0');
       _year = now.year.toString();
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   // Time zone helpers
@@ -223,7 +223,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
         }
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _backspaceTime() {
@@ -238,7 +238,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
         }
       }
     });
-    HapticFeedback.lightImpact();
+    context.read<FeedbackProvider>().lightTap();
   }
 
   void _clearTime() {
@@ -247,7 +247,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
       _minutes = '';
       _activeTimeField = 0;
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _setCurrentTime() {
@@ -256,7 +256,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
       _hours = now.hour.toString().padLeft(2, '0');
       _minutes = now.minute.toString().padLeft(2, '0');
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   void _swapTimeZones() {
@@ -265,7 +265,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
       _fromZoneIndex = _toZoneIndex;
       _toZoneIndex = temp;
     });
-    HapticFeedback.mediumImpact();
+    context.read<FeedbackProvider>().mediumTap();
   }
 
   Map<String, dynamic> get _timeZoneResult {
@@ -404,7 +404,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
                         _mode = mode;
                         _clearAll();
                       });
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -468,7 +468,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
                     activeField: _activeTimeField,
                     onFieldTap: (index) {
                       setState(() => _activeTimeField = index);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   ),
 
@@ -520,7 +520,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
                     activeField: _activeField,
                     onFieldTap: (index) {
                       setState(() => _activeField = index);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   ),
 
@@ -807,7 +807,7 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
                         }
                       });
                       Navigator.pop(context);
-                      HapticFeedback.selectionClick();
+                      context.read<FeedbackProvider>().selectionClick();
                     },
                   );
                 },
