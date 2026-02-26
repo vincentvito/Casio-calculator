@@ -27,13 +27,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       defaultAngleModeIndex: fields[7] as int,
       isDarkMode: fields[8] as bool,
       soundVolume: fields[9] as double,
+      themeIdIndex: fields[10] == null ? 0 : fields[10] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.soundEnabled)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(8)
       ..write(obj.isDarkMode)
       ..writeByte(9)
-      ..write(obj.soundVolume);
+      ..write(obj.soundVolume)
+      ..writeByte(10)
+      ..write(obj.themeIdIndex);
   }
 
   @override

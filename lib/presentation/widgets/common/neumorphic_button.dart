@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/enums/button_type.dart';
 import '../../../theme/color_palette.dart';
 import '../../../theme/typography.dart';
+import '../../painters/plastic_highlight_painter.dart';
 import '../../providers/theme_provider.dart';
 
 /// Tactile neumorphic button with press animation
@@ -119,27 +120,36 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
   Widget _buildButton(BuildContext context, theme, double pressDepth) {
     final buttonColor = _getButtonColor(theme);
     final textColor = _getTextColor(theme);
+    final isOperator = widget.buttonType == ButtonType.operation ||
+        widget.buttonType == ButtonType.equals;
 
-    return Container(
-      width: widget.width,
-      height: widget.height,
-      padding: widget.padding ?? const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: buttonColor,
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        gradient: _buildGradient(buttonColor),
-        boxShadow: _buildShadows(theme, pressDepth),
+    return CustomPaint(
+      foregroundPainter: PlasticHighlightPainter(
+        borderRadius: widget.borderRadius,
+        isPressed: _isPressed,
+        isOperator: isOperator,
       ),
-      child: Center(
-        child: widget.child ??
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                widget.label ?? '',
-                style: _getTextStyle(textColor),
-                textAlign: TextAlign.center,
+      child: Container(
+        width: widget.width,
+        height: widget.height,
+        padding: widget.padding ?? const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: buttonColor,
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          gradient: _buildGradient(buttonColor),
+          boxShadow: _buildShadows(theme, pressDepth),
+        ),
+        child: Center(
+          child: widget.child ??
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  widget.label ?? '',
+                  style: _getTextStyle(textColor),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+        ),
       ),
     );
   }
@@ -163,7 +173,11 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
       case ButtonType.operation:
       case ButtonType.equals:
         return theme.textOnAccent;
-      default:
+      case ButtonType.function:
+      case ButtonType.clear:
+      case ButtonType.memory:
+        return theme.textOnFunction;
+      case ButtonType.number:
         return theme.textPrimary;
     }
   }
@@ -184,16 +198,30 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
 
   LinearGradient _buildGradient(Color baseColor) {
     if (_isPressed) {
+      // Pressed: flatten the dome, darken top (inverted light)
       return LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [baseColor.darken(5), baseColor.lighten(2)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          baseColor.darken(6),
+          baseColor.darken(3),
+          baseColor.darken(1),
+        ],
+        stops: const [0.0, 0.4, 1.0],
       );
     }
+    // Unpressed: multi-stop top-to-bottom gradient simulating plastic dome curvature
     return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [baseColor.lighten(3), baseColor.darken(3)],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        baseColor.lighten(8), // Bright top — light catch
+        baseColor.lighten(3), // Transition
+        baseColor, // True color in middle
+        baseColor.darken(4), // Subtle darkening
+        baseColor.darken(7), // Darkest bottom edge
+      ],
+      stops: const [0.0, 0.15, 0.50, 0.85, 1.0],
     );
   }
 
@@ -220,6 +248,7 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
 
     // Convex (unpressed) shadows
     return [
+      // Main drop shadow
       BoxShadow(
         color: theme.shadowDark.withAlpha((153 * intensity).round()),
         offset: Offset(
@@ -228,6 +257,7 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
         ),
         blurRadius: theme.shadowBlur * 0.6 * intensity,
       ),
+      // Light highlight
       BoxShadow(
         color: theme.shadowLight.withAlpha((204 * intensity).round()),
         offset: Offset(
@@ -235,6 +265,14 @@ class _NeumorphicButtonState extends State<NeumorphicButton>
           -theme.shadowDistance * 0.3 * intensity,
         ),
         blurRadius: theme.shadowBlur * 0.3 * intensity,
+      ),
+      // Ambient occlusion: tight dark shadow at button base
+      // Simulates the gap where plastic key meets metal body
+      BoxShadow(
+        color: Colors.black.withOpacity(0.18 * intensity),
+        offset: Offset(0, 1.5 * intensity),
+        blurRadius: 2.5,
+        spreadRadius: -0.5,
       ),
     ];
   }

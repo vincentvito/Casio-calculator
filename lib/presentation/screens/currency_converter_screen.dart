@@ -120,7 +120,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     final theme = context.watch<ThemeProvider>().neumorphicTheme;
 
     return Container(
-      color: theme.backgroundColor,
+      color: Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [

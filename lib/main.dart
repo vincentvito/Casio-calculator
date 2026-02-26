@@ -8,7 +8,6 @@ import 'presentation/providers/calculator_provider.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/history_provider.dart';
 import 'presentation/screens/home_screen.dart';
-import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,9 +44,7 @@ class SkeuoCalcApp extends StatelessWidget {
           return MaterialApp(
             title: 'Skeuo Calc',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: themeProvider.themeMode,
+            theme: themeProvider.materialTheme,
             home: const HomeScreen(),
           );
         },

@@ -22,6 +22,7 @@ class SettingsProvider extends ChangeNotifier {
   AngleMode get defaultAngleMode => _settings.defaultAngleMode;
   bool get isDarkMode => _settings.isDarkMode;
   double get soundVolume => _settings.soundVolume;
+  AppThemeId get themeId => _settings.themeId;
 
   SettingsProvider() {
     _loadSettings();
@@ -114,6 +115,12 @@ class SettingsProvider extends ChangeNotifier {
 
   void updateIsDarkMode(bool value) {
     _settings = _settings.copyWith(isDarkMode: value);
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateThemeId(AppThemeId themeId) {
+    _settings = _settings.copyWith(themeIdIndex: themeId.index);
     _saveSettings();
     notifyListeners();
   }

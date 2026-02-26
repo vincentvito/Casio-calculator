@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// Light mode color palette - warm, cream-based
+/// Light mode color palette - silver aluminum body with plastic keys
 /// Inspired by Braun calculators and premium physical objects
 abstract class LightPalette {
-  // Base surface colors
-  static const Color background = Color(0xFFE8E4DE); // Warm cream
-  static const Color surface = Color(0xFFF2EDE7); // Lighter cream
+  // Base surface colors (aluminum context)
+  static const Color background = Color(0xFFC0BFC5); // Silver aluminum fallback
+  static const Color surface = Color(0xFFF2EDE7); // Lighter cream (settings panel)
   static const Color surfaceVariant = Color(0xFFDCD5CB); // Slightly darker
 
   // Shadow colors for neumorphism
-  static const Color shadowDark = Color(0xFFBEB8B0); // Warm gray shadow
+  static const Color shadowDark = Color(0xFF8A8890); // Cool gray shadow (metallic)
   static const Color shadowLight = Color(0xFFFFFFFF); // White highlight
 
   // Accent colors
@@ -23,14 +23,14 @@ abstract class LightPalette {
   static const Color displayTextDim = Color(0xFF5FCFAA); // Dimmer LCD text
   static const Color displayGlow = Color(0x4D7FFFD4); // 30% opacity glow
 
-  // Button colors
-  static const Color numberButton = Color(0xFFF0EBE3); // Cream for numbers
-  static const Color functionButton = Color(0xFFDCD5CB); // Slightly darker for functions
+  // Button colors (plastic feel — cool off-white)
+  static const Color numberButton = Color(0xFFEAEAED); // Cool off-white plastic
+  static const Color functionButton = Color(0xFFD8D8DC); // Slightly darker cool gray
   static const Color operatorButton = Color(0xFFD4A574); // Bronze for operators
 
   // Text colors
-  static const Color textPrimary = Color(0xFF4A4A4A); // Dark gray
-  static const Color textSecondary = Color(0xFF7A7A7A); // Medium gray
+  static const Color textPrimary = Color(0xFF3A3A3A); // Slightly darker for metal contrast
+  static const Color textSecondary = Color(0xFF6A6A6A); // Medium gray
   static const Color textOnAccent = Color(0xFFFFFFFF); // White on accent
 
   // Semantic colors
@@ -39,14 +39,19 @@ abstract class LightPalette {
 
   // Memory indicator
   static const Color memoryIndicator = Color(0xFF7FFFD4); // Match display
+
+  // Metallic utility colors
+  static const Color metalHighlight = Color(0x1AFFFFFF); // Edge highlights
+  static const Color metalShadow = Color(0x1A000000); // Edge shadows
+  static const Color ambientOcclusion = Color(0x30000000); // Button-to-body gap
 }
 
-/// Dark mode color palette - rich, premium dark
-/// Inspired by high-end hi-fi equipment
+/// Dark mode color palette - gunmetal aluminum body with dark plastic keys
+/// Inspired by high-end hi-fi equipment and space gray Apple hardware
 abstract class DarkPalette {
-  // Base surface colors
-  static const Color background = Color(0xFF1E1E24); // Rich charcoal
-  static const Color surface = Color(0xFF28282E); // Slightly lighter
+  // Base surface colors (gunmetal aluminum context)
+  static const Color background = Color(0xFF2A2A2E); // Gunmetal fallback
+  static const Color surface = Color(0xFF28282E); // Slightly lighter (settings)
   static const Color surfaceVariant = Color(0xFF252530); // Darker variant
 
   // Shadow colors for neumorphism
@@ -64,9 +69,9 @@ abstract class DarkPalette {
   static const Color displayTextDim = Color(0xFF00CF5F); // Dimmer LCD text
   static const Color displayGlow = Color(0x6600FF7F); // 40% opacity glow
 
-  // Button colors
-  static const Color numberButton = Color(0xFF2C2C34); // Dark numbers
-  static const Color functionButton = Color(0xFF252530); // Darker functions
+  // Button colors (dark plastic)
+  static const Color numberButton = Color(0xFF38383E); // Dark charcoal plastic
+  static const Color functionButton = Color(0xFF303036); // Slightly darker
   static const Color operatorButton = Color(0xFFFFB347); // Amber operators
 
   // Text colors
@@ -80,6 +85,11 @@ abstract class DarkPalette {
 
   // Memory indicator
   static const Color memoryIndicator = Color(0xFF00FF7F); // Match display
+
+  // Metallic utility colors
+  static const Color metalHighlight = Color(0x12FFFFFF); // Edge highlights
+  static const Color metalShadow = Color(0x25000000); // Edge shadows
+  static const Color ambientOcclusion = Color(0x40000000); // Button-to-body gap
 }
 
 /// Extension methods for color manipulation

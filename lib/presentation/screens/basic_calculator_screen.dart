@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/enums.dart';
 import '../providers/calculator_provider.dart';
-import '../providers/theme_provider.dart';
 import '../providers/history_provider.dart';
 import '../widgets/display/calculator_display.dart';
 import '../widgets/buttons/calculator_button.dart';
@@ -13,58 +12,55 @@ class BasicCalculatorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>().neumorphicTheme;
     final calculator = context.read<CalculatorProvider>();
     final history = context.read<HistoryProvider>();
 
-    return Container(
-      color: theme.backgroundColor,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
           // Display area
           const SizedBox(
-            height: 160,
+            height: 130,
             child: CalculatorDisplay(),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
-          // Memory row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: Row(
-              children: [
-                CalculatorButton(
-                  label: 'MC',
-                  buttonType: ButtonType.memory,
-                  onPressed: () => calculator.memoryClear(),
-                ),
-                CalculatorButton(
-                  label: 'MR',
-                  buttonType: ButtonType.memory,
-                  onPressed: () => calculator.memoryRecall(),
-                ),
-                CalculatorButton(
-                  label: 'M+',
-                  buttonType: ButtonType.memory,
-                  onPressed: () => calculator.memoryAdd(),
-                ),
-                CalculatorButton(
-                  label: 'M−',
-                  buttonType: ButtonType.memory,
-                  onPressed: () => calculator.memorySubtract(),
-                ),
-              ],
-            ),
-          ),
-
-          // Main button grid
+          // Main button grid (includes memory row)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Column(
                 children: [
+                  // Memory row: MC, MR, M+, M−
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CalculatorButton(
+                          label: 'MC',
+                          buttonType: ButtonType.memory,
+                          onPressed: () => calculator.memoryClear(),
+                        ),
+                        CalculatorButton(
+                          label: 'MR',
+                          buttonType: ButtonType.memory,
+                          onPressed: () => calculator.memoryRecall(),
+                        ),
+                        CalculatorButton(
+                          label: 'M+',
+                          buttonType: ButtonType.memory,
+                          onPressed: () => calculator.memoryAdd(),
+                        ),
+                        CalculatorButton(
+                          label: 'M−',
+                          buttonType: ButtonType.memory,
+                          onPressed: () => calculator.memorySubtract(),
+                        ),
+                      ],
+                    ),
+                  ),
+
                   // Row 1: AC, ±, %, ÷
                   Expanded(
                     child: Row(

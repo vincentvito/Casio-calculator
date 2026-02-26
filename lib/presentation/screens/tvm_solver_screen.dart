@@ -303,10 +303,7 @@ class _TVMSolverScreenState extends State<TVMSolverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>().neumorphicTheme;
-
-    return Container(
-      color: theme.backgroundColor,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [

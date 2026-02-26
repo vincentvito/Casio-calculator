@@ -36,6 +36,9 @@ class AppSettings extends HiveObject {
   @HiveField(9)
   double soundVolume;
 
+  @HiveField(10, defaultValue: 0)
+  int themeIdIndex; // Maps to AppThemeId enum
+
   AppSettings({
     this.soundEnabled = true,
     this.hapticEnabled = true,
@@ -47,6 +50,7 @@ class AppSettings extends HiveObject {
     this.defaultAngleModeIndex = 0, // Degrees
     this.isDarkMode = false,
     this.soundVolume = 0.7,
+    this.themeIdIndex = 0, // Classic
   }) : favoriteCurrencies = favoriteCurrencies ?? ['USD', 'EUR', 'GBP', 'JPY'];
 
   HapticIntensity get hapticIntensity =>
@@ -62,6 +66,12 @@ class AppSettings extends HiveObject {
     defaultAngleModeIndex = value.index;
   }
 
+  AppThemeId get themeId => AppThemeId.values[themeIdIndex.clamp(0, AppThemeId.values.length - 1)];
+
+  set themeId(AppThemeId value) {
+    themeIdIndex = value.index;
+  }
+
   AppSettings copyWith({
     bool? soundEnabled,
     bool? hapticEnabled,
@@ -73,6 +83,7 @@ class AppSettings extends HiveObject {
     int? defaultAngleModeIndex,
     bool? isDarkMode,
     double? soundVolume,
+    int? themeIdIndex,
   }) {
     return AppSettings(
       soundEnabled: soundEnabled ?? this.soundEnabled,
@@ -86,6 +97,7 @@ class AppSettings extends HiveObject {
           defaultAngleModeIndex ?? this.defaultAngleModeIndex,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       soundVolume: soundVolume ?? this.soundVolume,
+      themeIdIndex: themeIdIndex ?? this.themeIdIndex,
     );
   }
 }

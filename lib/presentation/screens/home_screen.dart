@@ -6,6 +6,7 @@ import '../providers/settings_provider.dart';
 import '../providers/history_provider.dart';
 import '../widgets/common/neumorphic_toggle.dart';
 import '../widgets/mode_switcher/calculator_type_toggle.dart';
+import '../widgets/surfaces/metallic_body.dart';
 import '../../theme/typography.dart';
 import 'basic_calculator_screen.dart';
 import 'scientific_calculator_screen.dart';
@@ -14,6 +15,7 @@ import 'unit_converter_screen.dart';
 import 'tvm_solver_screen.dart';
 import 'percentage_calculator_screen.dart';
 import 'date_interval_screen.dart';
+import 'theme_picker_screen.dart';
 
 enum ScreenMode { calculator, currency, units, tvm, percentage, dateInterval }
 
@@ -36,11 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main content
-            Column(
+      body: MetallicBody(
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Main content
+              Column(
               children: [
                 const SizedBox(height: 8),
 
@@ -183,7 +186,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -312,6 +316,27 @@ class _SettingsPanel extends StatelessWidget {
                 settings.updateHapticEnabled(value);
               },
             ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Themes section
+          Text(
+            'THEMES',
+            style: AppTypography.modeIndicator(theme.textSecondary),
+          ),
+          const SizedBox(height: 12),
+
+          _ToolButton(
+            icon: Icons.palette_outlined,
+            label: 'Themes',
+            onTap: () {
+              onClose();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => const ThemePickerScreen()),
+              );
+            },
           ),
 
           const SizedBox(height: 20),
@@ -483,11 +508,13 @@ class _ToolButton extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: AppTypography.label(theme.textPrimary),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTypography.label(theme.textPrimary),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const Spacer(),
             Icon(
               Icons.chevron_right,
               color: theme.textSecondary,

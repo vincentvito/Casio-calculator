@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'color_palette.dart';
 import 'neumorphic_theme.dart';
+import 'theme_palette.dart';
 
 /// Main app theme configuration
 class AppTheme {
@@ -70,6 +71,40 @@ class AppTheme {
       iconTheme: const IconThemeData(
         color: DarkPalette.textPrimary,
       ),
+    );
+  }
+
+  /// Build ThemeData from a ThemePalette
+  static ThemeData fromPalette(ThemePalette palette, {required bool isDark}) {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      scaffoldBackgroundColor: palette.background,
+      colorScheme:
+          (isDark ? const ColorScheme.dark() : const ColorScheme.light())
+              .copyWith(
+        primary: palette.accent,
+        secondary: palette.accentLight,
+        surface: palette.surface,
+        error: palette.error,
+        onPrimary: palette.textOnAccent,
+        onSecondary: palette.textPrimary,
+        onSurface: palette.textPrimary,
+        onError: Colors.white,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: palette.background,
+        foregroundColor: palette.textPrimary,
+        elevation: 0,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      ),
+      textTheme: TextTheme(
+        bodyLarge: TextStyle(color: palette.textPrimary),
+        bodyMedium: TextStyle(color: palette.textPrimary),
+        bodySmall: TextStyle(color: palette.textSecondary),
+      ),
+      iconTheme: IconThemeData(color: palette.textPrimary),
     );
   }
 

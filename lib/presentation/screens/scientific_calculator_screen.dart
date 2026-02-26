@@ -23,20 +23,17 @@ class _ScientificCalculatorScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>().neumorphicTheme;
-
     return ChangeNotifierProvider(
       create: (_) => ScientificCalculatorProvider(),
       child: Consumer<ScientificCalculatorProvider>(
         builder: (context, calc, _) {
-          return Container(
-            color: theme.backgroundColor,
+          return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
               children: [
                 // Display area
                 SizedBox(
-                  height: 140,
+                  height: 120,
                   child: _ScientificDisplay(
                     expression: calc.expression,
                     displayValue: calc.displayValue,
@@ -349,14 +346,9 @@ class _ScientificDisplay extends StatelessWidget {
     return NeumorphicContainer(
       style: NeumorphicStyle.concave,
       borderRadius: 16,
+      color: theme.displayBackground,
       padding: const EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.displayBackground,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -383,7 +375,6 @@ class _ScientificDisplay extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'color_palette.dart';
+import 'theme_palette.dart';
 
 /// Theme data specifically for neumorphic styling
 class NeumorphicThemeData {
@@ -30,11 +31,18 @@ class NeumorphicThemeData {
   final Color textPrimary;
   final Color textSecondary;
   final Color textOnAccent;
+  final Color textOnFunction;
 
   // Semantic colors
   final Color errorColor;
   final Color successColor;
   final Color memoryIndicator;
+
+  // Metallic body colors
+  final Color metalHighlight;
+  final Color metalShadow;
+  final Color ambientOcclusion;
+  final bool isDark;
 
   // Shadow configuration
   final double shadowDistance;
@@ -72,9 +80,14 @@ class NeumorphicThemeData {
     required this.textPrimary,
     required this.textSecondary,
     required this.textOnAccent,
+    required this.textOnFunction,
     required this.errorColor,
     required this.successColor,
     required this.memoryIndicator,
+    required this.metalHighlight,
+    required this.metalShadow,
+    required this.ambientOcclusion,
+    this.isDark = false,
     this.shadowDistance = 8.0,
     this.shadowBlur = 16.0,
     this.shadowSpread = 0.0,
@@ -88,7 +101,40 @@ class NeumorphicThemeData {
     this.displayPadding = 16.0,
   });
 
-  /// Light theme - warm cream-based palette
+  /// Construct from a ThemePalette
+  factory NeumorphicThemeData.fromPalette(ThemePalette palette,
+      {required bool isDark}) {
+    return NeumorphicThemeData(
+      backgroundColor: palette.background,
+      surfaceColor: palette.surface,
+      surfaceVariant: palette.surfaceVariant,
+      shadowDark: palette.shadowDark,
+      shadowLight: palette.shadowLight,
+      accentColor: palette.accent,
+      accentDark: palette.accentDark,
+      accentLight: palette.accentLight,
+      displayBackground: palette.displayBackground,
+      displayText: palette.displayText,
+      displayTextDim: palette.displayTextDim,
+      displayGlow: palette.displayGlow,
+      numberButtonColor: palette.numberButton,
+      functionButtonColor: palette.functionButton,
+      operatorButtonColor: palette.operatorButton,
+      textPrimary: palette.textPrimary,
+      textSecondary: palette.textSecondary,
+      textOnAccent: palette.textOnAccent,
+      textOnFunction: palette.textOnFunction,
+      errorColor: palette.error,
+      successColor: palette.success,
+      memoryIndicator: palette.memoryIndicator,
+      metalHighlight: palette.metalHighlight,
+      metalShadow: palette.metalShadow,
+      ambientOcclusion: palette.ambientOcclusion,
+      isDark: isDark,
+    );
+  }
+
+  /// Light theme - silver aluminum body with plastic keys
   factory NeumorphicThemeData.light() {
     return const NeumorphicThemeData(
       backgroundColor: LightPalette.background,
@@ -104,18 +150,23 @@ class NeumorphicThemeData {
       displayTextDim: LightPalette.displayTextDim,
       displayGlow: LightPalette.displayGlow,
       numberButtonColor: LightPalette.numberButton,
-      functionButtonColor: LightPalette.functionButton,
+      functionButtonColor: const Color(0xFF4A4A4A),
       operatorButtonColor: LightPalette.operatorButton,
       textPrimary: LightPalette.textPrimary,
       textSecondary: LightPalette.textSecondary,
       textOnAccent: LightPalette.textOnAccent,
+      textOnFunction: LightPalette.numberButton,
       errorColor: LightPalette.error,
       successColor: LightPalette.success,
       memoryIndicator: LightPalette.memoryIndicator,
+      metalHighlight: LightPalette.metalHighlight,
+      metalShadow: LightPalette.metalShadow,
+      ambientOcclusion: LightPalette.ambientOcclusion,
+      isDark: false,
     );
   }
 
-  /// Dark theme - rich charcoal palette
+  /// Dark theme - gunmetal aluminum body with dark plastic keys
   factory NeumorphicThemeData.dark() {
     return const NeumorphicThemeData(
       backgroundColor: DarkPalette.background,
@@ -136,9 +187,14 @@ class NeumorphicThemeData {
       textPrimary: DarkPalette.textPrimary,
       textSecondary: DarkPalette.textSecondary,
       textOnAccent: DarkPalette.textOnAccent,
+      textOnFunction: DarkPalette.textPrimary,
       errorColor: DarkPalette.error,
       successColor: DarkPalette.success,
       memoryIndicator: DarkPalette.memoryIndicator,
+      metalHighlight: DarkPalette.metalHighlight,
+      metalShadow: DarkPalette.metalShadow,
+      ambientOcclusion: DarkPalette.ambientOcclusion,
+      isDark: true,
     );
   }
 
@@ -214,9 +270,14 @@ class NeumorphicThemeData {
     Color? textPrimary,
     Color? textSecondary,
     Color? textOnAccent,
+    Color? textOnFunction,
     Color? errorColor,
     Color? successColor,
     Color? memoryIndicator,
+    Color? metalHighlight,
+    Color? metalShadow,
+    Color? ambientOcclusion,
+    bool? isDark,
     double? shadowDistance,
     double? shadowBlur,
     double? shadowSpread,
@@ -248,9 +309,14 @@ class NeumorphicThemeData {
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textOnAccent: textOnAccent ?? this.textOnAccent,
+      textOnFunction: textOnFunction ?? this.textOnFunction,
       errorColor: errorColor ?? this.errorColor,
       successColor: successColor ?? this.successColor,
       memoryIndicator: memoryIndicator ?? this.memoryIndicator,
+      metalHighlight: metalHighlight ?? this.metalHighlight,
+      metalShadow: metalShadow ?? this.metalShadow,
+      ambientOcclusion: ambientOcclusion ?? this.ambientOcclusion,
+      isDark: isDark ?? this.isDark,
       shadowDistance: shadowDistance ?? this.shadowDistance,
       shadowBlur: shadowBlur ?? this.shadowBlur,
       shadowSpread: shadowSpread ?? this.shadowSpread,

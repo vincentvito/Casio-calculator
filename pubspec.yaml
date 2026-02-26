@@ -78,10 +78,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # Assets - uncomment when sound files are added
-  # assets:
+  # Assets
+  assets:
+    - assets/textures/
   #   - assets/sounds/
-  #   - assets/textures/
 
   # Custom fonts - uncomment when font files are added
   # fonts:

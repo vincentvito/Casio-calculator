@@ -22,15 +22,12 @@ class CalculatorButton extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: AspectRatio(
-          aspectRatio: flex > 1 ? 2.2 : 1.0,
-          child: NeumorphicButton(
-            label: label,
-            onPressed: onPressed,
-            buttonType: buttonType,
-            borderRadius: 16,
-          ),
+        padding: const EdgeInsets.all(4),
+        child: NeumorphicButton(
+          label: label,
+          onPressed: onPressed,
+          buttonType: buttonType,
+          borderRadius: 16,
         ),
       ),
     );

@@ -6,6 +6,7 @@ import '../../providers/theme_provider.dart';
 import '../../providers/calculator_provider.dart';
 import '../common/neumorphic_container.dart';
 import 'backlit_text.dart';
+import 'crt_display_overlay.dart';
 
 /// Main calculator display with LCD-style appearance
 class CalculatorDisplay extends StatelessWidget {
@@ -13,7 +14,9 @@ class CalculatorDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>().neumorphicTheme;
+    final themeProvider = context.watch<ThemeProvider>();
+    final theme = themeProvider.neumorphicTheme;
+    final hasCrt = themeProvider.themeDefinition.hasCrtEffects;
     final calculator = context.watch<CalculatorProvider>();
 
     // Build the main display text: show expression being built or current value
@@ -23,69 +26,102 @@ class CalculatorDisplay extends StatelessWidget {
         ? calculator.expressionDisplay
         : '';
 
-    return NeumorphicContainer(
-      style: NeumorphicStyle.concave,
-      borderRadius: theme.displayBorderRadius,
-      color: theme.displayBackground,
-      padding: EdgeInsets.all(theme.displayPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Top row: Memory indicator and completed expression (small, dimmed)
-          SizedBox(
-            height: 24,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(theme.displayBorderRadius + 2),
+        // Uniform bezel border (non-uniform + borderRadius causes assertion)
+        border: Border.all(
+          color: theme.metalHighlight,
+          width: 1.0,
+        ),
+        // Directional bezel gradient simulated via boxShadow layers
+        boxShadow: [
+          // Contact shadow where display meets metal body
+          BoxShadow(
+            color: Colors.black.withOpacity(0.20),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: -1,
+          ),
+          // Bottom-right shadow edge for directional bezel
+          BoxShadow(
+            color: theme.metalShadow,
+            offset: const Offset(1, 1),
+            blurRadius: 1,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: NeumorphicContainer(
+        style: NeumorphicStyle.concave,
+        borderRadius: theme.displayBorderRadius,
+        color: theme.displayBackground,
+        padding: EdgeInsets.all(theme.displayPadding),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Memory indicator
-                if (calculator.hasMemory)
-                  Text(
-                    'M',
-                    style: AppTypography.labelSmall(theme.memoryIndicator),
-                  )
-                else
-                  const SizedBox.shrink(),
-                // Completed expression (shown small on top after result)
+                // Top row: Memory indicator and completed expression (small, dimmed)
+                SizedBox(
+                  height: 24,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Memory indicator
+                      if (calculator.hasMemory)
+                        Text(
+                          'M',
+                          style: AppTypography.labelSmall(theme.memoryIndicator),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      // Completed expression (shown small on top after result)
+                      Expanded(
+                        child: Text(
+                          topExpression,
+                          style: AppTypography.expression(theme.displayTextDim),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Main display - shows current expression being built
                 Expanded(
-                  child: Text(
-                    topExpression,
-                    style: AppTypography.expression(theme.displayTextDim),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: BacklitText(
+                        text: mainDisplayText,
+                        style: TextStyle(
+                          fontFamily: 'JetBrains Mono',
+                          fontSize: 36,
+                          fontWeight: FontWeight.w500,
+                          color: theme.displayText,
+                          letterSpacing: 2,
+                        ),
+                        glowColor: theme.displayGlow,
+                        glowIntensity: hasCrt ? 0.7 : (calculator.isError ? 0.8 : 0.4),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Main display - shows current expression being built
-          Expanded(
-            child: Align(
-              alignment: Alignment.bottomRight,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                reverse: true,
-                child: BacklitText(
-                  text: mainDisplayText,
-                  style: TextStyle(
-                    fontFamily: 'JetBrains Mono',
-                    fontSize: 36,
-                    fontWeight: FontWeight.w500,
-                    color: theme.displayText,
-                    letterSpacing: 2,
-                  ),
-                  glowColor: theme.displayGlow,
-                  glowIntensity: calculator.isError ? 0.8 : 0.4,
-                ),
-              ),
-            ),
-          ),
-        ],
+            // CRT scanline overlay (conditionally applied)
+            if (hasCrt) const CrtDisplayOverlay(),
+          ],
+        ),
       ),
     );
   }
