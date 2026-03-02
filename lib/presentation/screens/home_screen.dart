@@ -16,8 +16,9 @@ import 'tvm_solver_screen.dart';
 import 'percentage_calculator_screen.dart';
 import 'date_interval_screen.dart';
 import 'theme_picker_screen.dart';
+import 'graph_plotter_screen.dart';
 
-enum ScreenMode { calculator, currency, units, tvm, percentage, dateInterval }
+enum ScreenMode { calculator, currency, units, tvm, percentage, dateInterval, graph }
 
 /// Main screen container with mode switching
 class HomeScreen extends StatefulWidget {
@@ -41,151 +42,152 @@ class _HomeScreenState extends State<HomeScreen> {
       body: MetallicBody(
         child: SafeArea(
           child: Stack(
-            children: [
-              // Main content
-              Column(
-              children: [
-                const SizedBox(height: 8),
-
-                // Calculator type toggle (Basic/Scientific) - only show for calculator mode
-                if (_screenMode == ScreenMode.calculator)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CalculatorTypeToggle(
-                            isScientific: _isScientific,
-                            onChanged: (value) {
-                              setState(() {
-                                _isScientific = value;
-                              });
-                            },
+                children: [
+                  // Main content
+                  Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      // Calculator type toggle (Basic/Scientific) - only show for calculator mode
+                      if (_screenMode == ScreenMode.calculator)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: CalculatorTypeToggle(
+                                  isScientific: _isScientific,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isScientific = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 48), // Space for settings button
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 48), // Space for settings button
-                      ],
-                    ),
-                  ),
-
-                // Title for converter screens
-                if (_screenMode != ScreenMode.calculator)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 64, 8),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            context.read<FeedbackProvider>().lightTap();
-                            setState(() => _screenMode = ScreenMode.calculator);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: theme.surfaceVariant,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: theme.textSecondary,
-                              size: 20,
-                            ),
+                      // Title for converter screens
+                      if (_screenMode != ScreenMode.calculator)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 64, 8),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  context.read<FeedbackProvider>().lightTap();
+                                  setState(() => _screenMode = ScreenMode.calculator);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.surfaceVariant,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_back,
+                                    color: theme.textSecondary,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                _getScreenTitle(),
+                                style: AppTypography.settingsTitle(theme.textPrimary),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          _getScreenTitle(),
-                          style: AppTypography.settingsTitle(theme.textPrimary),
+                      // Main screen area
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          child: _buildCurrentScreen(),
                         ),
-                      ],
-                    ),
-                  ),
-
-                // Main screen area
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: _buildCurrentScreen(),
-                  ),
-                ),
-              ],
-            ),
-
-            // Settings button (top right)
-            Positioned(
-              top: 12,
-              right: 16,
-              child: GestureDetector(
-                onTap: () => setState(() => _showSettings = !_showSettings),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.surfaceColor,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.shadowDark.withAlpha(100),
-                        offset: const Offset(2, 2),
-                        blurRadius: 6,
-                      ),
-                      BoxShadow(
-                        color: theme.shadowLight.withAlpha(120),
-                        offset: const Offset(-1, -1),
-                        blurRadius: 4,
                       ),
                     ],
                   ),
-                  child: Icon(
-                    _showSettings ? Icons.close : Icons.settings,
-                    color: theme.textSecondary,
-                    size: 18,
+                  // Settings button (top right)
+                  Positioned(
+                    top: 12,
+                    right: 16,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _showSettings = !_showSettings),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: theme.surfaceColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.shadowDark.withAlpha(100),
+                              offset: const Offset(2, 2),
+                              blurRadius: 6,
+                            ),
+                            BoxShadow(
+                              color: theme.shadowLight.withAlpha(120),
+                              offset: const Offset(-1, -1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          _showSettings ? Icons.close : Icons.settings,
+                          color: theme.textSecondary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-
-            // Settings overlay
-            if (_showSettings)
-              Positioned(
-                top: 56,
-                right: 16,
-                child: _SettingsPanel(
-                  onClose: () => setState(() => _showSettings = false),
-                  onCurrencyTap: () {
-                    setState(() {
-                      _screenMode = ScreenMode.currency;
-                      _showSettings = false;
-                    });
-                  },
-                  onUnitsTap: () {
-                    setState(() {
-                      _screenMode = ScreenMode.units;
-                      _showSettings = false;
-                    });
-                  },
-                  onTVMTap: () {
-                    setState(() {
-                      _screenMode = ScreenMode.tvm;
-                      _showSettings = false;
-                    });
-                  },
-                  onPercentageTap: () {
-                    setState(() {
-                      _screenMode = ScreenMode.percentage;
-                      _showSettings = false;
-                    });
-                  },
-                  onDateIntervalTap: () {
-                    setState(() {
-                      _screenMode = ScreenMode.dateInterval;
-                      _showSettings = false;
-                    });
-                  },
-                ),
-              ),
+                  // Settings overlay
+                  if (_showSettings)
+                    Positioned(
+                      top: 56,
+                      right: 16,
+                      child: _SettingsPanel(
+                        onClose: () => setState(() => _showSettings = false),
+                        onCurrencyTap: () {
+                          setState(() {
+                            _screenMode = ScreenMode.currency;
+                            _showSettings = false;
+                          });
+                        },
+                        onUnitsTap: () {
+                          setState(() {
+                            _screenMode = ScreenMode.units;
+                            _showSettings = false;
+                          });
+                        },
+                        onTVMTap: () {
+                          setState(() {
+                            _screenMode = ScreenMode.tvm;
+                            _showSettings = false;
+                          });
+                        },
+                        onPercentageTap: () {
+                          setState(() {
+                            _screenMode = ScreenMode.percentage;
+                            _showSettings = false;
+                          });
+                        },
+                        onDateIntervalTap: () {
+                          setState(() {
+                            _screenMode = ScreenMode.dateInterval;
+                            _showSettings = false;
+                          });
+                        },
+                        onGraphTap: () {
+                          setState(() {
+                            _screenMode = ScreenMode.graph;
+                            _showSettings = false;
+                          });
+                        },
+                      ),
+                    ),
             ],
           ),
         ),
@@ -207,6 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return 'Percentage';
       case ScreenMode.dateInterval:
         return 'Date Interval';
+      case ScreenMode.graph:
+        return 'Graph Plotter';
     }
   }
 
@@ -226,6 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return const PercentageCalculatorScreen(key: ValueKey('percentage'));
       case ScreenMode.dateInterval:
         return const DateIntervalScreen(key: ValueKey('dateInterval'));
+      case ScreenMode.graph:
+        return const GraphPlotterScreen(key: ValueKey('graph'));
     }
   }
 }
@@ -237,6 +243,7 @@ class _SettingsPanel extends StatelessWidget {
   final VoidCallback onTVMTap;
   final VoidCallback onPercentageTap;
   final VoidCallback onDateIntervalTap;
+  final VoidCallback onGraphTap;
 
   const _SettingsPanel({
     required this.onClose,
@@ -245,6 +252,7 @@ class _SettingsPanel extends StatelessWidget {
     required this.onTVMTap,
     required this.onPercentageTap,
     required this.onDateIntervalTap,
+    required this.onGraphTap,
   });
 
   @override
@@ -389,6 +397,15 @@ class _SettingsPanel extends StatelessWidget {
             icon: Icons.calendar_today,
             label: 'Date Interval',
             onTap: onDateIntervalTap,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Graph Plotter button
+          _ToolButton(
+            icon: Icons.show_chart,
+            label: 'Graph Plotter',
+            onTap: onGraphTap,
           ),
 
           const SizedBox(height: 20),

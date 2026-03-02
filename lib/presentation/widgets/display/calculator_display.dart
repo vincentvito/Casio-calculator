@@ -96,24 +96,31 @@ class CalculatorDisplay extends StatelessWidget {
 
                 // Main display - shows current expression being built
                 Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      reverse: true,
-                      child: BacklitText(
-                        text: mainDisplayText,
-                        style: TextStyle(
-                          fontFamily: 'JetBrains Mono',
-                          fontSize: 36,
-                          fontWeight: FontWeight.w500,
-                          color: theme.displayText,
-                          letterSpacing: 2,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Align(
+                        alignment: Alignment.bottomRight,
+                        child: SizedBox(
+                          width: constraints.maxWidth,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: BacklitText(
+                              text: mainDisplayText,
+                              style: TextStyle(
+                                fontFamily: 'JetBrains Mono',
+                                fontSize: 36,
+                                fontWeight: FontWeight.w500,
+                                color: theme.displayText,
+                                letterSpacing: 2,
+                              ),
+                              glowColor: theme.displayGlow,
+                              glowIntensity: hasCrt ? 0.7 : (calculator.isError ? 0.8 : 0.4),
+                            ),
+                          ),
                         ),
-                        glowColor: theme.displayGlow,
-                        glowIntensity: hasCrt ? 0.7 : (calculator.isError ? 0.8 : 0.4),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ],

@@ -144,11 +144,58 @@ class _DateIntervalScreenState extends State<DateIntervalScreen> {
     setState(() {
       String currentValue = _currentFieldValue;
       if (currentValue.length < _maxFieldLength) {
-        currentValue += digit;
-        _setCurrentFieldValue(currentValue);
+        final newValue = currentValue + digit;
+
+        // Validate based on active field
+        if (_isValidInput(newValue)) {
+          _setCurrentFieldValue(newValue);
+
+          // Auto-advance to next field when current is complete
+          if (newValue.length >= _maxFieldLength && _activeField < 2) {
+            _activeField++;
+          }
+        }
       }
     });
     context.read<FeedbackProvider>().lightTap();
+  }
+
+  /// Validate input based on active field
+  bool _isValidInput(String value) {
+    final intValue = int.tryParse(value);
+    if (intValue == null) return false;
+
+    switch (_activeField) {
+      case 0: // Day (DD): 1-31
+        if (value.length == 1) {
+          // First digit can be 0-3
+          return intValue <= 3;
+        } else {
+          // Full value must be 1-31
+          return intValue >= 1 && intValue <= 31;
+        }
+
+      case 1: // Month (MM): 1-12
+        if (value.length == 1) {
+          // First digit can be 0 or 1
+          return intValue <= 1;
+        } else {
+          // Full value must be 1-12
+          return intValue >= 1 && intValue <= 12;
+        }
+
+      case 2: // Year (YYYY): 1900-2200
+        if (value.length < 4) {
+          // Allow partial input
+          return true;
+        } else {
+          // Full value must be in valid range
+          return intValue >= 1900 && intValue <= 2200;
+        }
+
+      default:
+        return true;
+    }
   }
 
   void _setCurrentFieldValue(String value) {

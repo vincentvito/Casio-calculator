@@ -235,14 +235,36 @@ class BasicCalculatorEngine {
 
     double result;
     if (_pendingOperation != null && _operand1 != null) {
-      // Calculate as percentage of operand1
-      result = _operand1! * value / 100;
-    } else {
-      // Just divide by 100
-      result = value / 100;
-    }
+      // Calculate percentage of operand1
+      final percentValue = _operand1! * value / 100;
 
-    _displayBuffer = _formatResult(result);
+      // Now apply the pending operation with the percentage value
+      switch (_pendingOperation!) {
+        case CalculatorOperation.add:
+          result = _operand1! + percentValue;
+        case CalculatorOperation.subtract:
+          result = _operand1! - percentValue;
+        case CalculatorOperation.multiply:
+          result = percentValue; // 200 × 15% = 30
+        case CalculatorOperation.divide:
+          if (percentValue == 0) {
+            _setError('Cannot divide by zero');
+            return;
+          }
+          result = _operand1! / percentValue;
+      }
+
+      // Complete the calculation
+      _expressionDisplay = '${_formatNumber(_operand1!)} ${_pendingOperation!.symbol} ${_formatNumber(value)}% =';
+      _displayBuffer = _formatResult(result);
+      _operand1 = result;
+      _pendingOperation = null;
+      _state = CalculatorState.resultDisplayed;
+    } else {
+      // No pending operation - just divide by 100
+      result = value / 100;
+      _displayBuffer = _formatResult(result);
+    }
   }
 
   /// Delete last digit (backspace)

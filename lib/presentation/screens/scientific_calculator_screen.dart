@@ -114,9 +114,15 @@ class _ScientificCalculatorScreenState
                             children: [
                               _ScientificButton(
                                 label: _isInverseMode ? 'eˣ' : 'ln',
-                                onPressed: () => _isInverseMode
-                                    ? calc.inputFunction('exp')
-                                    : calc.inputFunction('ln'),
+                                onPressed: () {
+                                  if (_isInverseMode) {
+                                    // e^x: input e constant then power operator
+                                    calc.inputConstant('e');
+                                    calc.inputPower();
+                                  } else {
+                                    calc.inputFunction('ln');
+                                  }
+                                },
                               ),
                               _ScientificButton(
                                 label: _isInverseMode ? '10ˣ' : 'log',
@@ -352,25 +358,32 @@ class _ScientificDisplay extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // Expression (scrollable with fixed font size)
+            // Expression (auto-scales to fit)
             Expanded(
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  reverse: true,
-                  child: Text(
-                    _formatExpression(displayValue),
-                    style: TextStyle(
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: 36,
-                      fontWeight: FontWeight.w500,
-                      color: isError ? Colors.red[400] : theme.displayText,
-                      letterSpacing: 2,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Align(
+                    alignment: Alignment.bottomRight,
+                    child: SizedBox(
+                      width: constraints.maxWidth,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          _formatExpression(displayValue),
+                          style: TextStyle(
+                            fontFamily: 'JetBrains Mono',
+                            fontSize: 36,
+                            fontWeight: FontWeight.w500,
+                            color: isError ? Colors.red[400] : theme.displayText,
+                            letterSpacing: 2,
+                          ),
+                          maxLines: 1,
+                        ),
+                      ),
                     ),
-                    maxLines: 1,
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ],

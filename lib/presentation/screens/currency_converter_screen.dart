@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/neumorphic_style.dart';
+import '../../domain/services/currency_service.dart';
 import '../../theme/typography.dart';
 import '../providers/feedback_provider.dart';
 import '../providers/theme_provider.dart';
@@ -8,7 +9,7 @@ import '../widgets/common/neumorphic_container.dart';
 import '../widgets/common/neumorphic_button.dart';
 import '../../core/enums/button_type.dart';
 
-/// Currency converter screen
+/// Currency converter screen with live exchange rates
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
 
@@ -17,55 +18,53 @@ class CurrencyConverterScreen extends StatefulWidget {
 }
 
 class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
+  final CurrencyService _currencyService = CurrencyService();
+
   String _fromCurrency = 'USD';
   String _toCurrency = 'EUR';
   String _inputValue = '0';
 
-  // Sample exchange rates (in a real app, these would come from an API)
-  static const Map<String, double> _rates = {
-    'USD': 1.0,
-    'EUR': 0.92,
-    'GBP': 0.79,
-    'JPY': 148.50,
-    'CHF': 0.88,
-    'CAD': 1.35,
-    'AUD': 1.53,
-    'CNY': 7.24,
-    'INR': 83.12,
-    'MXN': 17.15,
-  };
+  Map<String, double> _rates = {};
+  bool _isLoading = true;
+  bool _hasError = false;
+  DateTime? _lastUpdated;
 
-  static const Map<String, String> _currencyNames = {
-    'USD': 'US Dollar',
-    'EUR': 'Euro',
-    'GBP': 'British Pound',
-    'JPY': 'Japanese Yen',
-    'CHF': 'Swiss Franc',
-    'CAD': 'Canadian Dollar',
-    'AUD': 'Australian Dollar',
-    'CNY': 'Chinese Yuan',
-    'INR': 'Indian Rupee',
-    'MXN': 'Mexican Peso',
-  };
+  @override
+  void initState() {
+    super.initState();
+    _fetchRates();
+  }
 
-  static const Map<String, String> _currencySymbols = {
-    'USD': '\$',
-    'EUR': '€',
-    'GBP': '£',
-    'JPY': '¥',
-    'CHF': 'CHF',
-    'CAD': 'C\$',
-    'AUD': 'A\$',
-    'CNY': '¥',
-    'INR': '₹',
-    'MXN': '\$',
-  };
+  Future<void> _fetchRates() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      final rates = await _currencyService.getRates(_fromCurrency);
+      setState(() {
+        _rates = rates;
+        _isLoading = false;
+        _lastUpdated = DateTime.now();
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+      });
+    }
+  }
 
   double get _convertedValue {
     final input = double.tryParse(_inputValue) ?? 0;
-    final fromRate = _rates[_fromCurrency] ?? 1;
-    final toRate = _rates[_toCurrency] ?? 1;
-    return input / fromRate * toRate;
+    if (_fromCurrency == _toCurrency) return input;
+
+    final rate = _rates[_toCurrency];
+    if (rate != null) {
+      return input * rate;
+    }
+    return 0;
   }
 
   void _swapCurrencies() {
@@ -75,6 +74,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       _toCurrency = temp;
     });
     context.read<FeedbackProvider>().mediumTap();
+    _fetchRates(); // Refresh rates for new base currency
   }
 
   void _inputDigit(String digit) {
@@ -124,6 +124,14 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
+          // Status bar (loading/error/last updated)
+          SizedBox(
+            height: 24,
+            child: _buildStatusBar(theme),
+          ),
+
+          const SizedBox(height: 8),
+
           // Conversion display
           Expanded(
             flex: 2,
@@ -133,9 +141,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 Expanded(
                   child: _CurrencyCard(
                     currency: _fromCurrency,
-                    currencyName: _currencyNames[_fromCurrency]!,
-                    symbol: _currencySymbols[_fromCurrency]!,
-                    value: _inputValue,
+                    currencyName: CurrencyService.currencyNames[_fromCurrency] ?? '',
+                    symbol: CurrencyService.currencySymbols[_fromCurrency] ?? '',
+                    value: _formatInputWithCommas(_inputValue),
                     isInput: true,
                     onCurrencyTap: () => _showCurrencyPicker(true),
                   ),
@@ -167,11 +175,12 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 Expanded(
                   child: _CurrencyCard(
                     currency: _toCurrency,
-                    currencyName: _currencyNames[_toCurrency]!,
-                    symbol: _currencySymbols[_toCurrency]!,
-                    value: _formatNumber(_convertedValue),
+                    currencyName: CurrencyService.currencyNames[_toCurrency] ?? '',
+                    symbol: CurrencyService.currencySymbols[_toCurrency] ?? '',
+                    value: _isLoading ? '...' : _formatNumber(_convertedValue, _toCurrency),
                     isInput: false,
                     onCurrencyTap: () => _showCurrencyPicker(false),
+                    rate: _rates[_toCurrency],
                   ),
                 ),
               ],
@@ -190,6 +199,70 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                 _buildKeypadRow(['1', '2', '3', '']),
                 _buildKeypadRow(['0', '.', '', '']),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBar(dynamic theme) {
+    if (_isLoading) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.accentColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Fetching live rates...',
+            style: TextStyle(
+              fontSize: 11,
+              color: theme.textSecondary,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_hasError) {
+      return GestureDetector(
+        onTap: _fetchRates,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 14, color: Colors.orange[400]),
+            const SizedBox(width: 4),
+            Text(
+              'Using offline rates. Tap to retry.',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.orange[400],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: _fetchRates,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle, size: 14, color: Colors.green[400]),
+          const SizedBox(width: 4),
+          Text(
+            'Live rates • Tap to refresh',
+            style: TextStyle(
+              fontSize: 11,
+              color: theme.textSecondary,
             ),
           ),
         ],
@@ -255,14 +328,21 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: _rates.length,
+                itemCount: CurrencyService.supportedCurrencies.length,
                 itemBuilder: (context, index) {
-                  final currency = _rates.keys.elementAt(index);
+                  final currency = CurrencyService.supportedCurrencies[index];
                   final isSelected = isFrom
                       ? currency == _fromCurrency
                       : currency == _toCurrency;
 
                   return ListTile(
+                    leading: Text(
+                      CurrencyService.currencySymbols[currency] ?? '',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: theme.textSecondary,
+                      ),
+                    ),
                     title: Text(
                       currency,
                       style: TextStyle(
@@ -272,7 +352,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      _currencyNames[currency]!,
+                      CurrencyService.currencyNames[currency] ?? '',
                       style: TextStyle(color: theme.textSecondary),
                     ),
                     trailing: isSelected
@@ -282,6 +362,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                       setState(() {
                         if (isFrom) {
                           _fromCurrency = currency;
+                          _fetchRates(); // Refresh rates for new base
                         } else {
                           _toCurrency = currency;
                         }
@@ -299,11 +380,89 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     );
   }
 
-  String _formatNumber(double value) {
-    if (value == value.roundToDouble() && value.abs() < 1e12) {
-      return value.toInt().toString();
+  String _formatInputWithCommas(String input) {
+    if (input == '0' || input.isEmpty) return input;
+    return _addCommas(input, _fromCurrency);
+  }
+
+  String _formatNumber(double value, String currency) {
+    // Show 2 decimal places, more for small values
+    if (value.abs() < 0.01 && value != 0) {
+      return value.toStringAsFixed(6);
     }
-    return value.toStringAsFixed(2);
+
+    String numStr;
+    if (value == value.roundToDouble() && value.abs() < 1e12) {
+      numStr = value.toInt().toString();
+    } else {
+      numStr = value.toStringAsFixed(2);
+    }
+
+    return _addCommas(numStr, currency);
+  }
+
+  /// Currencies that use Indian numbering system (XX,XX,XXX)
+  /// Used in India, Pakistan, Nepal, Sri Lanka, Bangladesh
+  static const _indianSystemCurrencies = {'INR', 'PKR', 'NPR', 'LKR', 'BDT'};
+
+  String _addCommas(String number, String currency) {
+    // Split into integer and decimal parts
+    final parts = number.split('.');
+    final integerPart = parts[0];
+    final decimalPart = parts.length > 1 ? '.${parts[1]}' : '';
+
+    // Handle negative numbers
+    final isNegative = integerPart.startsWith('-');
+    final digits = isNegative ? integerPart.substring(1) : integerPart;
+
+    String formatted;
+    if (_indianSystemCurrencies.contains(currency)) {
+      // Indian system: XX,XX,XXX (first comma after 3 digits, then every 2)
+      formatted = _formatIndianSystem(digits);
+    } else {
+      // Western system: X,XXX,XXX (comma every 3 digits)
+      formatted = _formatWesternSystem(digits);
+    }
+
+    return '${isNegative ? '-' : ''}$formatted$decimalPart';
+  }
+
+  /// Western number format: comma every 3 digits (1,234,567)
+  String _formatWesternSystem(String digits) {
+    final buffer = StringBuffer();
+    for (int i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(digits[i]);
+    }
+    return buffer.toString();
+  }
+
+  /// Indian number format: first comma after 3 digits, then every 2 (12,34,567)
+  String _formatIndianSystem(String digits) {
+    if (digits.length <= 3) return digits;
+
+    final buffer = StringBuffer();
+    // First, handle the last 3 digits
+    final lastThree = digits.substring(digits.length - 3);
+    final remaining = digits.substring(0, digits.length - 3);
+
+    // Format remaining digits with commas every 2 digits
+    for (int i = 0; i < remaining.length; i++) {
+      if (i > 0 && (remaining.length - i) % 2 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(remaining[i]);
+    }
+
+    // Add comma before last 3 digits
+    if (remaining.isNotEmpty) {
+      buffer.write(',');
+    }
+    buffer.write(lastThree);
+
+    return buffer.toString();
   }
 }
 
@@ -314,6 +473,7 @@ class _CurrencyCard extends StatelessWidget {
   final String value;
   final bool isInput;
   final VoidCallback onCurrencyTap;
+  final double? rate;
 
   const _CurrencyCard({
     required this.currency,
@@ -322,6 +482,7 @@ class _CurrencyCard extends StatelessWidget {
     required this.value,
     required this.isInput,
     required this.onCurrencyTap,
+    this.rate,
   });
 
   @override
@@ -380,6 +541,14 @@ class _CurrencyCard extends StatelessWidget {
                   currencyName,
                   style: AppTypography.label(theme.textSecondary),
                 ),
+                if (!isInput && rate != null)
+                  Text(
+                    '1 ${currency == 'USD' ? 'USD' : 'unit'} = ${rate!.toStringAsFixed(4)}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: theme.textSecondary.withValues(alpha: 0.7),
+                    ),
+                  ),
               ],
             ),
           ),

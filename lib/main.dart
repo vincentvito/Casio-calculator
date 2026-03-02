@@ -8,6 +8,7 @@ import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/calculator_provider.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/history_provider.dart';
+import 'presentation/providers/graph_plotter_provider.dart';
 import 'presentation/screens/home_screen.dart';
 
 void main() async {
@@ -26,13 +27,25 @@ void main() async {
   final feedbackProvider = FeedbackProvider();
   await feedbackProvider.initialize();
 
-  runApp(SkeuoCalcApp(feedbackProvider: feedbackProvider));
+  // Pre-load history from Hive
+  final historyProvider = HistoryProvider();
+  await historyProvider.loadHistory();
+
+  runApp(SkeuoCalcApp(
+    feedbackProvider: feedbackProvider,
+    historyProvider: historyProvider,
+  ));
 }
 
 class SkeuoCalcApp extends StatelessWidget {
   final FeedbackProvider feedbackProvider;
+  final HistoryProvider historyProvider;
 
-  const SkeuoCalcApp({super.key, required this.feedbackProvider});
+  const SkeuoCalcApp({
+    super.key,
+    required this.feedbackProvider,
+    required this.historyProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +62,8 @@ class SkeuoCalcApp extends StatelessWidget {
               feedback!..updateFromSettings(settings),
         ),
         ChangeNotifierProvider(create: (_) => CalculatorProvider()),
-        ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ChangeNotifierProvider(create: (_) => historyProvider),
+        ChangeNotifierProvider(create: (_) => GraphPlotterProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

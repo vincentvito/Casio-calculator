@@ -382,6 +382,12 @@ class ScientificCalculatorProvider extends ChangeNotifier {
     if (value.isNaN) return 'Error';
     if (value.isInfinite) return value > 0 ? '∞' : '-∞';
 
+    // Round very small numbers to 0 (floating-point precision fix)
+    // e.g., cos(90°) gives 6.123234e-17 instead of 0
+    if (value.abs() < 1e-14) {
+      value = 0;
+    }
+
     // Handle integers
     if (value == value.roundToDouble() && value.abs() < 1e12) {
       return value.toInt().toString();
