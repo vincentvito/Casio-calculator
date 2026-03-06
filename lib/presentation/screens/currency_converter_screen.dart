@@ -17,44 +17,95 @@ class CurrencyConverterScreen extends StatefulWidget {
   State<CurrencyConverterScreen> createState() => _CurrencyConverterScreenState();
 }
 
-class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
+class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> with SingleTickerProviderStateMixin {
   final CurrencyService _currencyService = CurrencyService();
+  late TabController _tabController;
 
-  String _fromCurrency = 'USD';
-  String _toCurrency = 'EUR';
-  String _inputValue = '0';
+  // Crypto tab state
+  String _cryptoFrom = 'BTC';
+  String _cryptoTo = 'USD';
+  String _cryptoInput = '0';
+  Map<String, double> _cryptoRates = {};
+  bool _cryptoLoading = true;
+  bool _cryptoError = false;
 
-  Map<String, double> _rates = {};
-  bool _isLoading = true;
-  bool _hasError = false;
-  DateTime? _lastUpdated;
+  // Fiat tab state
+  String _fiatFrom = 'USD';
+  String _fiatTo = 'EUR';
+  String _fiatInput = '0';
+  Map<String, double> _fiatRates = {};
+  bool _fiatLoading = true;
+  bool _fiatError = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchRates();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _fetchCryptoRates();
+    _fetchFiatRates();
   }
 
-  Future<void> _fetchRates() async {
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      context.read<FeedbackProvider>().lightTap();
+    }
+  }
+
+  Future<void> _fetchCryptoRates() async {
     setState(() {
-      _isLoading = true;
-      _hasError = false;
+      _cryptoLoading = true;
+      _cryptoError = false;
     });
 
     try {
-      final rates = await _currencyService.getRates(_fromCurrency);
+      final rates = await _currencyService.getRates(_cryptoFrom);
       setState(() {
-        _rates = rates;
-        _isLoading = false;
-        _lastUpdated = DateTime.now();
+        _cryptoRates = rates;
+        _cryptoLoading = false;
       });
     } catch (e) {
       setState(() {
-        _isLoading = false;
-        _hasError = true;
+        _cryptoLoading = false;
+        _cryptoError = true;
       });
     }
   }
+
+  Future<void> _fetchFiatRates() async {
+    setState(() {
+      _fiatLoading = true;
+      _fiatError = false;
+    });
+
+    try {
+      final rates = await _currencyService.getRates(_fiatFrom);
+      setState(() {
+        _fiatRates = rates;
+        _fiatLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _fiatLoading = false;
+        _fiatError = true;
+      });
+    }
+  }
+
+  bool get _isCryptoTab => _tabController.index == 1;
+
+  String get _fromCurrency => _isCryptoTab ? _cryptoFrom : _fiatFrom;
+  String get _toCurrency => _isCryptoTab ? _cryptoTo : _fiatTo;
+  String get _inputValue => _isCryptoTab ? _cryptoInput : _fiatInput;
+  Map<String, double> get _rates => _isCryptoTab ? _cryptoRates : _fiatRates;
+  bool get _isLoading => _isCryptoTab ? _cryptoLoading : _fiatLoading;
+  bool get _hasError => _isCryptoTab ? _cryptoError : _fiatError;
 
   double get _convertedValue {
     final input = double.tryParse(_inputValue) ?? 0;
@@ -69,29 +120,52 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
   void _swapCurrencies() {
     setState(() {
-      final temp = _fromCurrency;
-      _fromCurrency = _toCurrency;
-      _toCurrency = temp;
+      if (_isCryptoTab) {
+        final temp = _cryptoFrom;
+        _cryptoFrom = _cryptoTo;
+        _cryptoTo = temp;
+      } else {
+        final temp = _fiatFrom;
+        _fiatFrom = _fiatTo;
+        _fiatTo = temp;
+      }
     });
     context.read<FeedbackProvider>().mediumTap();
-    _fetchRates(); // Refresh rates for new base currency
+    if (_isCryptoTab) {
+      _fetchCryptoRates();
+    } else {
+      _fetchFiatRates();
+    }
   }
 
   void _inputDigit(String digit) {
     setState(() {
-      if (_inputValue == '0' && digit != '0') {
-        _inputValue = digit;
-      } else if (_inputValue != '0') {
-        _inputValue += digit;
+      if (_isCryptoTab) {
+        if (_cryptoInput == '0' && digit != '0') {
+          _cryptoInput = digit;
+        } else if (_cryptoInput != '0') {
+          _cryptoInput += digit;
+        }
+      } else {
+        if (_fiatInput == '0' && digit != '0') {
+          _fiatInput = digit;
+        } else if (_fiatInput != '0') {
+          _fiatInput += digit;
+        }
       }
     });
     context.read<FeedbackProvider>().lightTap();
   }
 
   void _inputDecimal() {
-    if (!_inputValue.contains('.')) {
+    final currentInput = _isCryptoTab ? _cryptoInput : _fiatInput;
+    if (!currentInput.contains('.')) {
       setState(() {
-        _inputValue += '.';
+        if (_isCryptoTab) {
+          _cryptoInput += '.';
+        } else {
+          _fiatInput += '.';
+        }
       });
       context.read<FeedbackProvider>().lightTap();
     }
@@ -99,17 +173,29 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
   void _clear() {
     setState(() {
-      _inputValue = '0';
+      if (_isCryptoTab) {
+        _cryptoInput = '0';
+      } else {
+        _fiatInput = '0';
+      }
     });
     context.read<FeedbackProvider>().mediumTap();
   }
 
   void _backspace() {
     setState(() {
-      if (_inputValue.length > 1) {
-        _inputValue = _inputValue.substring(0, _inputValue.length - 1);
+      if (_isCryptoTab) {
+        if (_cryptoInput.length > 1) {
+          _cryptoInput = _cryptoInput.substring(0, _cryptoInput.length - 1);
+        } else {
+          _cryptoInput = '0';
+        }
       } else {
-        _inputValue = '0';
+        if (_fiatInput.length > 1) {
+          _fiatInput = _fiatInput.substring(0, _fiatInput.length - 1);
+        } else {
+          _fiatInput = '0';
+        }
       }
     });
     context.read<FeedbackProvider>().lightTap();
@@ -124,17 +210,47 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
+          // Tab bar
+          Container(
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.surfaceVariant,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                color: theme.accentColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              labelColor: theme.backgroundColor,
+              unselectedLabelColor: theme.textSecondary,
+              labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              labelPadding: EdgeInsets.zero,
+              tabs: const [
+                Tab(text: 'Currency'),
+                Tab(text: 'Crypto'),
+              ],
+              onTap: (_) => setState(() {}),
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
           // Status bar (loading/error/last updated)
           SizedBox(
-            height: 24,
+            height: 20,
             child: _buildStatusBar(theme),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
           // Conversion display
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Column(
               children: [
                 // From currency
@@ -151,12 +267,12 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
                 // Swap button
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: GestureDetector(
                     onTap: _swapCurrencies,
                     child: Container(
-                      width: 48,
-                      height: 48,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: theme.surfaceColor,
                         shape: BoxShape.circle,
@@ -165,7 +281,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                       child: Icon(
                         Icons.swap_vert,
                         color: theme.accentColor,
-                        size: 24,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -177,21 +293,21 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                     currency: _toCurrency,
                     currencyName: CurrencyService.currencyNames[_toCurrency] ?? '',
                     symbol: CurrencyService.currencySymbols[_toCurrency] ?? '',
-                    value: _isLoading ? '...' : _formatNumber(_convertedValue, _toCurrency),
+                    value: _isLoading ? '...' : (_hasError ? '--' : _formatNumber(_convertedValue, _toCurrency)),
                     isInput: false,
                     onCurrencyTap: () => _showCurrencyPicker(false),
-                    rate: _rates[_toCurrency],
+                    rate: _hasError ? null : _rates[_toCurrency],
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
           // Numeric keypad
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Column(
               children: [
                 _buildKeypadRow(['7', '8', '9', 'C']),
@@ -204,6 +320,14 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
         ],
       ),
     );
+  }
+
+  void _refreshCurrentTab() {
+    if (_isCryptoTab) {
+      _fetchCryptoRates();
+    } else {
+      _fetchFiatRates();
+    }
   }
 
   Widget _buildStatusBar(dynamic theme) {
@@ -233,17 +357,17 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
     if (_hasError) {
       return GestureDetector(
-        onTap: _fetchRates,
+        onTap: _refreshCurrentTab,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 14, color: Colors.orange[400]),
+            Icon(Icons.error_outline, size: 14, color: Colors.red[400]),
             const SizedBox(width: 4),
             Text(
-              'Using offline rates. Tap to retry.',
+              'Unable to fetch rates. Tap to retry.',
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.orange[400],
+                color: Colors.red[400],
               ),
             ),
           ],
@@ -252,7 +376,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     }
 
     return GestureDetector(
-      onTap: _fetchRates,
+      onTap: _refreshCurrentTab,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -308,6 +432,11 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   void _showCurrencyPicker(bool isFrom) {
     final theme = context.read<ThemeProvider>().neumorphicTheme;
 
+    // Get currencies based on current tab
+    final currencies = _isCryptoTab
+        ? [...CurrencyService.cryptoCurrencies, ...CurrencyService.fiatCurrencies]
+        : CurrencyService.fiatCurrencies;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.backgroundColor,
@@ -321,26 +450,31 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select Currency',
+              _isCryptoTab ? 'Select Crypto / Currency' : 'Select Currency',
               style: AppTypography.settingsTitle(theme.textPrimary),
             ),
             const SizedBox(height: 16),
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: CurrencyService.supportedCurrencies.length,
+                itemCount: currencies.length,
                 itemBuilder: (context, index) {
-                  final currency = CurrencyService.supportedCurrencies[index];
+                  final currency = currencies[index];
                   final isSelected = isFrom
                       ? currency == _fromCurrency
                       : currency == _toCurrency;
+                  final isCrypto = CurrencyService.isCrypto(currency);
 
                   return ListTile(
-                    leading: Text(
-                      CurrencyService.currencySymbols[currency] ?? '',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: theme.textSecondary,
+                    leading: Container(
+                      width: 32,
+                      alignment: Alignment.center,
+                      child: Text(
+                        CurrencyService.currencySymbols[currency] ?? '',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: isCrypto ? theme.accentColor : theme.textSecondary,
+                        ),
                       ),
                     ),
                     title: Text(
@@ -360,11 +494,20 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                         : null,
                     onTap: () {
                       setState(() {
-                        if (isFrom) {
-                          _fromCurrency = currency;
-                          _fetchRates(); // Refresh rates for new base
+                        if (_isCryptoTab) {
+                          if (isFrom) {
+                            _cryptoFrom = currency;
+                            _fetchCryptoRates();
+                          } else {
+                            _cryptoTo = currency;
+                          }
                         } else {
-                          _toCurrency = currency;
+                          if (isFrom) {
+                            _fiatFrom = currency;
+                            _fetchFiatRates();
+                          } else {
+                            _fiatTo = currency;
+                          }
                         }
                       });
                       Navigator.pop(context);
@@ -386,16 +529,42 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   }
 
   String _formatNumber(double value, String currency) {
-    // Show 2 decimal places, more for small values
-    if (value.abs() < 0.01 && value != 0) {
-      return value.toStringAsFixed(6);
-    }
+    // Crypto currencies need more decimal places
+    final isCrypto = CurrencyService.isCrypto(currency);
+    // JPY, KRW don't use decimals
+    final noDecimals = CurrencyService.noDecimalCurrencies.contains(currency);
 
     String numStr;
-    if (value == value.roundToDouble() && value.abs() < 1e12) {
-      numStr = value.toInt().toString();
+
+    if (isCrypto) {
+      // Crypto: show up to 8 decimals for small values, fewer for large
+      if (value.abs() < 0.00000001 && value != 0) {
+        numStr = value.toStringAsFixed(10);
+      } else if (value.abs() < 0.0001 && value != 0) {
+        numStr = value.toStringAsFixed(8);
+      } else if (value.abs() < 1) {
+        numStr = value.toStringAsFixed(6);
+      } else if (value.abs() < 100) {
+        numStr = value.toStringAsFixed(4);
+      } else {
+        numStr = value.toStringAsFixed(2);
+      }
+      // Trim trailing zeros after decimal
+      if (numStr.contains('.')) {
+        numStr = numStr.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+      }
+    } else if (noDecimals) {
+      // No decimals for JPY, KRW
+      numStr = value.round().toString();
     } else {
-      numStr = value.toStringAsFixed(2);
+      // Standard fiat: 2 decimal places, more for very small values
+      if (value.abs() < 0.01 && value != 0) {
+        numStr = value.toStringAsFixed(6);
+      } else if (value == value.roundToDouble() && value.abs() < 1e12) {
+        numStr = value.toInt().toString();
+      } else {
+        numStr = value.toStringAsFixed(2);
+      }
     }
 
     return _addCommas(numStr, currency);
